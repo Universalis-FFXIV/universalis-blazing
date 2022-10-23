@@ -42,8 +42,11 @@ struct RecentlyUpdated {
 
 #[derive(Serialize, Clone, Copy)]
 struct WorldItemUpload {
+    #[serde(rename(serialize = "worldId"))]
     world_id: u32,
+    #[serde(rename(serialize = "itemId"))]
     item_id: u32,
+    #[serde(rename(serialize = "lastUploadTime"))]
     last_upload_time: i64,
 }
 
