@@ -14,6 +14,12 @@ struct TaxRates(deadpool_redis::Pool);
 #[serde(crate = "rocket::serde")]
 struct TaxRatesValue {
     limsa_lominsa: u8,
+    gridania: u8,
+    uldah: u8,
+    ishgard: u8,
+    kugane: u8,
+    crystarium: u8,
+    old_sharlayan: u8,
 }
 
 #[derive(Serialize)]
@@ -58,6 +64,12 @@ impl FromRedisValue for TaxRatesValue {
         match v {
             redis::Value::Bulk(values) => Ok(TaxRatesValue {
                 limsa_lominsa: try_get_int(&values[0]).unwrap_or_default() as u8,
+                gridania: try_get_int(&values[1]).unwrap_or_default() as u8,
+                uldah: try_get_int(&values[2]).unwrap_or_default() as u8,
+                ishgard: try_get_int(&values[3]).unwrap_or_default() as u8,
+                kugane: try_get_int(&values[4]).unwrap_or_default() as u8,
+                crystarium: try_get_int(&values[5]).unwrap_or_default() as u8,
+                old_sharlayan: try_get_int(&values[6]).unwrap_or_default() as u8,
             }),
             _ => Err((
                 redis::ErrorKind::TypeError,
