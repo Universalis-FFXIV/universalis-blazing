@@ -4,9 +4,10 @@ extern crate rocket;
 use std::collections::BTreeMap;
 
 use rocket::http::Status;
-use rocket::serde::{json::Json, Serialize};
+use rocket::serde::json::Json;
 use rocket_db_pools::deadpool_redis::redis::{self, AsyncCommands, FromRedisValue, RedisResult};
 use rocket_db_pools::{deadpool_redis, Connection, Database};
+use serde::Serialize;
 
 #[derive(Database)]
 #[database("tax_rates")]
@@ -17,25 +18,29 @@ struct TaxRates(deadpool_redis::Pool);
 struct Stats(deadpool_redis::Pool);
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct TaxRatesValue {
+    #[serde(rename(serialize = "Limsa Lominsa"))]
     limsa_lominsa: u8,
+    #[serde(rename(serialize = "Gridania"))]
     gridania: u8,
+    #[serde(rename(serialize = "Ul'dah"))]
     uldah: u8,
+    #[serde(rename(serialize = "Ishgard"))]
     ishgard: u8,
+    #[serde(rename(serialize = "Kugane"))]
     kugane: u8,
+    #[serde(rename(serialize = "Crystarium"))]
     crystarium: u8,
+    #[serde(rename(serialize = "Old Sharlayan"))]
     old_sharlayan: u8,
 }
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct RecentlyUpdated {
     items: Vec<u32>,
 }
 
 #[derive(Serialize, Clone, Copy)]
-#[serde(crate = "rocket::serde")]
 struct WorldItemUpload {
     world_id: u32,
     item_id: u32,
@@ -53,7 +58,6 @@ impl WorldItemUpload {
 }
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct MostLeastRecentlyUpdated {
     items: Vec<WorldItemUpload>,
 }
