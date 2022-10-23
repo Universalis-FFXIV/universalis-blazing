@@ -1,0 +1,5 @@
+[default]
+address = "0.0.0.0"
+
+[default.databases.tax_rates]
+url = "redis://localhost/1"
