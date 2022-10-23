@@ -1,9 +1,11 @@
 #[macro_use]
 extern crate rocket;
 
+use std::collections::BTreeMap;
+
 use rocket::http::Status;
 use rocket::serde::{json::Json, Serialize};
-use rocket_db_pools::deadpool_redis::redis::{self, AsyncCommands, FromRedisValue};
+use rocket_db_pools::deadpool_redis::redis::{self, AsyncCommands, FromRedisValue, RedisResult};
 use rocket_db_pools::{deadpool_redis, Connection, Database};
 
 #[derive(Database)]
@@ -63,18 +65,43 @@ fn try_get_int(v: &redis::Value) -> Option<i64> {
     }
 }
 
+fn hash_to_map(values: &Vec<redis::Value>) -> RedisResult<BTreeMap<String, redis::Value>> {
+    let mut map = BTreeMap::new();
+    let mut last_key = String::new();
+    for i in 0..values.len() {
+        if i % 2 == 0 {
+            last_key = String::from_redis_value(&values[i])?;
+            map.insert(last_key.clone(), redis::Value::Nil);
+        } else {
+            map.insert(last_key.clone(), values[i].clone());
+        }
+    }
+    Ok(map)
+}
+
 impl FromRedisValue for TaxRatesValue {
     fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
         match v {
-            redis::Value::Bulk(values) => Ok(TaxRatesValue {
-                limsa_lominsa: try_get_int(&values[0]).unwrap_or_default() as u8,
-                gridania: try_get_int(&values[1]).unwrap_or_default() as u8,
-                uldah: try_get_int(&values[2]).unwrap_or_default() as u8,
-                ishgard: try_get_int(&values[3]).unwrap_or_default() as u8,
-                kugane: try_get_int(&values[4]).unwrap_or_default() as u8,
-                crystarium: try_get_int(&values[5]).unwrap_or_default() as u8,
-                old_sharlayan: try_get_int(&values[6]).unwrap_or_default() as u8,
-            }),
+            redis::Value::Bulk(values) => {
+                let map = hash_to_map(values)?;
+                if map.len() < 7 {
+                    Err((
+                        redis::ErrorKind::TypeError,
+                        "Expected at least 6 elements in response, got fewer",
+                    )
+                        .into())
+                } else {
+                    Ok(TaxRatesValue {
+                        limsa_lominsa: try_get_int(&map["Limsa Lominsa"]).unwrap_or_default() as u8,
+                        gridania: try_get_int(&map["Gridania"]).unwrap_or_default() as u8,
+                        uldah: try_get_int(&map["Ul'dah"]).unwrap_or_default() as u8,
+                        ishgard: try_get_int(&map["Ishgard"]).unwrap_or_default() as u8,
+                        kugane: try_get_int(&map["Kugane"]).unwrap_or_default() as u8,
+                        crystarium: try_get_int(&map["Crystarium"]).unwrap_or_default() as u8,
+                        old_sharlayan: try_get_int(&map["Old Sharlayan"]).unwrap_or_default() as u8,
+                    })
+                }
+            }
             _ => Err((
                 redis::ErrorKind::TypeError,
                 "Expected bulk response, got other response type",
@@ -130,6 +157,8 @@ impl FromRedisValue for MostLeastRecentlyUpdated {
         }
     }
 }
+
+// TODO: map redis errors in endpoints to other status codes
 
 // Rocket doesn't have support for aliasing query parameters, so I need to
 // just ignore the warning in order to not break API contracts.
