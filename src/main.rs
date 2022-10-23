@@ -61,6 +61,9 @@ struct MostLeastRecentlyUpdated {
 fn try_get_int(v: &redis::Value) -> Option<i64> {
     match v {
         redis::Value::Int(n) => Some(*n),
+        redis::Value::Data(buf) => String::from_utf8(buf.clone())
+            .ok()
+            .map_or(None, |s| s.parse::<i64>().ok()),
         _ => None,
     }
 }
@@ -79,6 +82,10 @@ fn hash_to_map(values: &Vec<redis::Value>) -> RedisResult<BTreeMap<String, redis
     Ok(map)
 }
 
+fn redis_map_get_i64(map: &BTreeMap<String, redis::Value>, key: String) -> i64 {
+    try_get_int(&map.get(&key).unwrap_or(&redis::Value::Nil)).unwrap_or_default()
+}
+
 impl FromRedisValue for TaxRatesValue {
     fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
         match v {
@@ -92,13 +99,13 @@ impl FromRedisValue for TaxRatesValue {
                         .into())
                 } else {
                     Ok(TaxRatesValue {
-                        limsa_lominsa: try_get_int(&map["Limsa Lominsa"]).unwrap_or_default() as u8,
-                        gridania: try_get_int(&map["Gridania"]).unwrap_or_default() as u8,
-                        uldah: try_get_int(&map["Ul'dah"]).unwrap_or_default() as u8,
-                        ishgard: try_get_int(&map["Ishgard"]).unwrap_or_default() as u8,
-                        kugane: try_get_int(&map["Kugane"]).unwrap_or_default() as u8,
-                        crystarium: try_get_int(&map["Crystarium"]).unwrap_or_default() as u8,
-                        old_sharlayan: try_get_int(&map["Old Sharlayan"]).unwrap_or_default() as u8,
+                        limsa_lominsa: redis_map_get_i64(&map, "Limsa Lominsa".to_string()) as u8,
+                        gridania: redis_map_get_i64(&map, "Gridania".to_string()) as u8,
+                        uldah: redis_map_get_i64(&map, "Ul'dah".to_string()) as u8,
+                        ishgard: redis_map_get_i64(&map, "Ishgard".to_string()) as u8,
+                        kugane: redis_map_get_i64(&map, "Kugane".to_string()) as u8,
+                        crystarium: redis_map_get_i64(&map, "Crystarium".to_string()) as u8,
+                        old_sharlayan: redis_map_get_i64(&map, "Old Sharlayan".to_string()) as u8,
                     })
                 }
             }
