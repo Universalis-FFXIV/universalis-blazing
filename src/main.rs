@@ -181,7 +181,7 @@ impl FromRedisValue for MostLeastRecentlyUpdated {
 async fn least_recently_updated(
     mut db: Connection<Stats>,
     world: Option<u32>,
-    dcName: Option<&str>, // TODO: DC support>
+    dcName: Option<&str>, // TODO: DC support?
 ) -> Result<Json<MostLeastRecentlyUpdated>, Status> {
     match world {
         Some(w) => db
@@ -207,11 +207,21 @@ async fn least_recently_updated(
 }
 
 #[allow(non_snake_case)]
+#[get("/api/v2/extra/stats/least-recently-updated?<world>&<dcName>")]
+async fn least_recently_updated_v2(
+    db: Connection<Stats>,
+    world: Option<u32>,
+    dcName: Option<&str>,
+) -> Result<Json<MostLeastRecentlyUpdated>, Status> {
+    least_recently_updated(db, world, dcName).await
+}
+
+#[allow(non_snake_case)]
 #[get("/api/extra/stats/most-recently-updated?<world>&<dcName>")]
 async fn most_recently_updated(
     mut db: Connection<Stats>,
     world: Option<u32>,
-    dcName: Option<&str>, // TODO: DC support>
+    dcName: Option<&str>,
 ) -> Result<Json<MostLeastRecentlyUpdated>, Status> {
     match world {
         Some(w) => db
@@ -236,6 +246,16 @@ async fn most_recently_updated(
     }
 }
 
+#[allow(non_snake_case)]
+#[get("/api/v2/extra/stats/most-recently-updated?<world>&<dcName>")]
+async fn most_recently_updated_v2(
+    db: Connection<Stats>,
+    world: Option<u32>,
+    dcName: Option<&str>,
+) -> Result<Json<MostLeastRecentlyUpdated>, Status> {
+    most_recently_updated(db, world, dcName).await
+}
+
 #[get("/api/extra/stats/recently-updated?<world>")]
 async fn recently_updated(
     mut db: Connection<Stats>,
@@ -248,6 +268,15 @@ async fn recently_updated(
             .map_or_else(|_| Err(Status::NotFound), |ru| Ok(Json(ru))),
         None => Err(Status::NotFound),
     }
+}
+
+#[allow(non_snake_case)]
+#[get("/api/v2/extra/stats/recently-updated?<world>")]
+async fn recently_updated_v2(
+    db: Connection<Stats>,
+    world: Option<u32>,
+) -> Result<Json<RecentlyUpdated>, Status> {
+    recently_updated(db, world).await
 }
 
 #[get("/api/tax-rates?<world>")]
@@ -264,6 +293,15 @@ async fn tax_rates(
     }
 }
 
+#[allow(non_snake_case)]
+#[get("/api/v2/tax-rates?<world>")]
+async fn tax_rates_v2(
+    db: Connection<TaxRates>,
+    world: Option<u32>,
+) -> Result<Json<TaxRatesValue>, Status> {
+    tax_rates(db, world).await
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
@@ -273,9 +311,13 @@ fn rocket() -> _ {
             "/",
             routes![
                 least_recently_updated,
+                least_recently_updated_v2,
                 most_recently_updated,
+                most_recently_updated_v2,
                 recently_updated,
-                tax_rates
+                recently_updated_v2,
+                tax_rates,
+                tax_rates_v2,
             ],
         )
 }
