@@ -10,6 +10,10 @@ use rocket_db_pools::{deadpool_redis, Connection, Database};
 #[database("tax_rates")]
 struct TaxRates(deadpool_redis::Pool);
 
+#[derive(Database)]
+#[database("stats")]
+struct Stats(deadpool_redis::Pool);
+
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
 struct TaxRatesValue {
@@ -132,7 +136,7 @@ impl FromRedisValue for MostLeastRecentlyUpdated {
 #[allow(non_snake_case)]
 #[get("/api/extra/stats/least-recently-updated?<world>&<dcName>")]
 async fn least_recently_updated(
-    mut db: Connection<TaxRates>,
+    mut db: Connection<Stats>,
     world: Option<u32>,
     dcName: Option<&str>, // TODO: DC support>
 ) -> Result<Json<MostLeastRecentlyUpdated>, Status> {
@@ -162,7 +166,7 @@ async fn least_recently_updated(
 #[allow(non_snake_case)]
 #[get("/api/extra/stats/most-recently-updated?<world>&<dcName>")]
 async fn most_recently_updated(
-    mut db: Connection<TaxRates>,
+    mut db: Connection<Stats>,
     world: Option<u32>,
     dcName: Option<&str>, // TODO: DC support>
 ) -> Result<Json<MostLeastRecentlyUpdated>, Status> {
@@ -191,7 +195,7 @@ async fn most_recently_updated(
 
 #[get("/api/extra/stats/recently-updated?<world>")]
 async fn recently_updated(
-    mut db: Connection<TaxRates>,
+    mut db: Connection<Stats>,
     world: Option<u32>,
 ) -> Result<Json<RecentlyUpdated>, Status> {
     match world {
@@ -219,13 +223,16 @@ async fn tax_rates(
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().attach(TaxRates::init()).mount(
-        "/",
-        routes![
-            least_recently_updated,
-            most_recently_updated,
-            recently_updated,
-            tax_rates
-        ],
-    )
+    rocket::build()
+        .attach(Stats::init())
+        .attach(TaxRates::init())
+        .mount(
+            "/",
+            routes![
+                least_recently_updated,
+                most_recently_updated,
+                recently_updated,
+                tax_rates
+            ],
+        )
 }
