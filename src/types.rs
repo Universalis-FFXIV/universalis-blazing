@@ -1,16 +1,7 @@
 use std::collections::BTreeMap;
 
 use rocket_db_pools::deadpool_redis::redis::{self, FromRedisValue, RedisResult};
-use rocket_db_pools::{deadpool_redis, Database};
 use serde::Serialize;
-
-#[derive(Database)]
-#[database("tax_rates")]
-pub struct TaxRates(deadpool_redis::Pool);
-
-#[derive(Database)]
-#[database("stats")]
-pub struct Stats(deadpool_redis::Pool);
 
 #[derive(Serialize)]
 pub struct TaxRatesValue {

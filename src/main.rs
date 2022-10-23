@@ -1,8 +1,12 @@
 #[macro_use]
 extern crate rocket;
 
+mod db;
+mod routes;
 mod types;
 
+use crate::db::*;
+use crate::routes::tax_rates::*;
 use crate::types::*;
 use rocket::http::Status;
 use rocket::serde::json::Json;
@@ -114,29 +118,6 @@ async fn recently_updated_v2(
     world: Option<u32>,
 ) -> Result<Json<RecentlyUpdated>, Status> {
     recently_updated(db, world).await
-}
-
-#[get("/api/tax-rates?<world>")]
-async fn tax_rates(
-    mut db: Connection<TaxRates>,
-    world: Option<u32>,
-) -> Result<Json<TaxRatesValue>, Status> {
-    match world {
-        Some(w) => db
-            .hgetall::<_, TaxRatesValue>(w)
-            .await
-            .map_or_else(|_| Err(Status::NotFound), |tr| Ok(Json(tr))),
-        None => Err(Status::NotFound),
-    }
-}
-
-#[allow(non_snake_case)]
-#[get("/api/v2/tax-rates?<world>")]
-async fn tax_rates_v2(
-    db: Connection<TaxRates>,
-    world: Option<u32>,
-) -> Result<Json<TaxRatesValue>, Status> {
-    tax_rates(db, world).await
 }
 
 #[launch]
