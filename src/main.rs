@@ -12,8 +12,6 @@ use crate::routes::recently_updated::*;
 use crate::routes::tax_rates::*;
 use rocket_db_pools::Database;
 
-// TODO: map redis errors in endpoints to other status codes
-
 #[launch]
 fn rocket() -> _ {
     rocket::build()

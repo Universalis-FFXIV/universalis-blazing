@@ -1,5 +1,6 @@
 use crate::db::*;
 use crate::types::*;
+use log::error;
 use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket_db_pools::deadpool_redis::redis::AsyncCommands;
@@ -17,7 +18,10 @@ pub async fn most_recently_updated(
             .zrevrange_withscores::<_, MostLeastRecentlyUpdated>(w, 0, -1)
             .await
             .map_or_else(
-                |_| Err(Status::NotFound),
+                |e| {
+                    error!("{:?}", e);
+                    Err(Status::InternalServerError)
+                },
                 |ru| {
                     Ok(Json(MostLeastRecentlyUpdated {
                         items: ru
