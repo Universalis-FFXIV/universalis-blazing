@@ -1,6 +1,26 @@
 version: "3.9"
 services:
   redis:
-    image: "redis:alpine"
+    image: "redis:7.0.0"
+    command: "redis-server --save 600 1 --loglevel warning"
     ports:
       - "6379:6379"
+    volumes:
+      - "./redis:/data:rw"
+  prometheus:
+    image: "prom/prometheus:v2.36.0"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      # Grafana and Prometheus need to reach out to the application for stats
+      - "host.docker.internal:host-gateway"
+  grafana:
+    image: "grafana/grafana:8.5.5"
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "./data:/var/lib/grafana:rw"
