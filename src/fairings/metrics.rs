@@ -12,7 +12,7 @@ impl Metrics {
     pub fn new() -> Result<Self> {
         let requests_received = register_int_counter_vec!(
             "universalis_blazing_reqs_received",
-            "The total number of requests received by the BLAZING FAST server.",
+            "The total number of requests received by the BLAZING FAST Universalis server.",
             &["code", "method", "path"],
         )
         .context("Failed to create request counter")?;
@@ -38,7 +38,7 @@ fn method_to_str(method: Method) -> String {
 impl Fairing for Metrics {
     fn info(&self) -> Info {
         Info {
-            name: "Request Counter",
+            name: "Metrics",
             kind: Kind::Response,
         }
     }
