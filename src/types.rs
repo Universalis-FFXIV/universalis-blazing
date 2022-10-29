@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use rocket_db_pools::deadpool_redis::redis::{self, FromRedisValue, RedisResult};
 use serde::Serialize;
@@ -61,8 +61,8 @@ pub fn try_get_int(v: &redis::Value) -> Option<i64> {
     }
 }
 
-pub fn hash_to_map(values: &Vec<redis::Value>) -> RedisResult<BTreeMap<String, redis::Value>> {
-    let mut map = BTreeMap::new();
+pub fn hash_to_map(values: &Vec<redis::Value>) -> RedisResult<HashMap<String, redis::Value>> {
+    let mut map = HashMap::new();
     let mut last_key = String::new();
     for i in 0..values.len() {
         if i % 2 == 0 {
@@ -75,7 +75,7 @@ pub fn hash_to_map(values: &Vec<redis::Value>) -> RedisResult<BTreeMap<String, r
     Ok(map)
 }
 
-pub fn redis_map_get_i64(map: &BTreeMap<String, redis::Value>, key: String) -> i64 {
+pub fn redis_map_get_i64(map: &HashMap<String, redis::Value>, key: String) -> i64 {
     try_get_int(&map.get(&key).unwrap_or(&redis::Value::Nil)).unwrap_or_default()
 }
 
