@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = "1.0.66"
 dotenv_codegen = "0.15.0"
 ironworks = {version = "0.4.1", features = ["excel", "ffxiv", "sqpack"]}
+ironworks_sheets = {git = "https://github.com/ackwell/ironworks", branch = "sheets/saint-coinach"}
 log = "0.4"
 prometheus = "0.13.3"
 rocket = { version = "0.5.0-rc.2", features = ["json"] }

@@ -4,6 +4,7 @@ extern crate rocket;
 mod db;
 mod fairings;
 mod routes;
+mod servers;
 mod types;
 
 use std::path::Path;
